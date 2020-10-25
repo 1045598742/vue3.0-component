@@ -1,39 +1,27 @@
-import Vue from "vue";
-import Router from 'vue-router';
-Vue.use(Router);
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import Home from '../views/Home.vue'
 
-export default new Router({
-    mode:'hash',
-    routes:[
-        {
-            path:'/',
-            redirect:'/clip'
-        },
-        {
-            path:'/picker-demo',
-            component:()=> import( '@/views/picker-demo.vue')
-        },
-        {
-            path:'/button',
-            component:()=> import( '@/views/button.vue')
-        },
-        {
-            path:'/player',
-            component:()=> import( '@/views/player.vue')
-        },
-        {
-            path:'/progress',
-            component:()=> import( '@/views/progress.vue')
-        },
-        {
-            path:'/canvans',
-            component:()=> import( '@/views/canvans.vue'),
-            name:'canvans'
-        },
-        {
-            path:'/clip',
-            component:()=> import( '@/views/clip-image.vue'),
-            name:'clip'
-        }
-    ]
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+  },
+  {
+    path: '/carousel',
+    name: 'carousel',
+    component: () => import('../views/carousel-demo.vue')
+  }
+]
+
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
 })
+
+export default router
