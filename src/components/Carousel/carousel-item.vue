@@ -1,26 +1,48 @@
 <template>
-  <transition name="fade">
-    <div v-show="isShow" class="lb-carousel__item" :class="{ prev: $parent.operation === 'prev'}">
+  <transition name="lb-carousel">
+    <div
+      v-show="isShow"
+      :class="['lb-carousel__item', { prev: $parent.operation === 'prev'}, { card: $parent.type === 'card'}]"
+      v-bind="attrs"
+    >
       <slot />
     </div>
   </transition>
 </template>
 
 <script>
-import { computed, defineComponent, getCurrentInstance, onMounted, ref, watch } from 'vue'
+import { computed, defineComponent, getCurrentInstance, nextTick, ref, watch } from 'vue'
 
 export default defineComponent({
   name: 'CarouselItem',
   setup(props) {
-    const { ctx } = getCurrentInstance()
-    const index = (ctx.$parent.childNum || 0)
-    ctx.$parent.childNum = index + 1
-    watch(() => ctx.$parent.activeIndex, (newValue) => {
-      // console.log(newValue)
+    const { ctx: { $parent } } = getCurrentInstance()
+    const index = ref($parent.childNum || 0)
+    const attrs = ref({})
+    $parent.childNum = index.value + 1
+
+    const isShow = computed(() => {
+      if ($parent.type === 'card') return true
+      return $parent.activeIndex === index.value
     })
-    const isShow = computed(() => ctx.$parent.activeIndex === index)
+
+    watch(() => $parent.type, type => {
+      if (type === 'card') {
+        nextTick(() => { // 防止初次渲染获取不到transformObj的值， 所以加nextTick
+          const style = computed(() => {
+            return ($parent.transformObj[index.value] || $parent.transformObj['other']).style
+          })
+          attrs.value.style = style
+        })
+      } else {
+        attrs.value = {}
+      }
+    }, { immediate: true })
+
     return {
-      isShow
+      isShow,
+      index,
+      attrs
     }
   }
 })
@@ -33,25 +55,22 @@ export default defineComponent({
       background-color: sandybrown;
       height: 100%;
       width: 100%;
-      transition: transform .5s ease-in-out;
+      transition: transform .5s ease-out;
       &.card {
-        // transform: scale(.8);
+        width: 50%;
+      }
+    }
+    &-enter-from {
+      transform: translateX(100%);
+      &.prev {
+        transform: translateX(-100%);
+      }
+    }
+    &-leave-to {
+      transform: translateX(-100%);
+      &.prev {
+        transform: translateX(100%);
       }
     }
   }
-  .fade-enter-from {
-    transform: translateX(100%);
-  }
-  .fade-leave-to {
-    transform: translateX(-100%);
-  }
-  .fade-enter-from.prev {
-    transform: translateX(-100%);
-  }
-  .fade-leave-to.prev {
-    transform: translateX(100%);
-  }
-  // .fade-enter-avtive,.fade-leave-avtive {
-  //   transition: all .5s ease-in-out;
-  // }
 </style>

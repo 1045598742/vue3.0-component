@@ -9,99 +9,108 @@
       </keep-alive>
     </router-view> -->
   <router-view />
-  <div class="hehe">
-    <button @click="hehe">复制图片</button>
-   <img
-    @blur="blur"
-    @focus="focus"
-    src="http://www.baidu.com/img/flexible/logo/pc/result.png"
-    alt="http://www.baidu.com/img/flexible/logo/pc/result.png"
-   />
-   <p>尝试拖动图片至word</p>
-   <p>点击我再粘贴试试</p>
+  <div ref="outer" class="a">
+    <div
+      ref="barY"
+      v-show="scrollHeight > 0"
+      :style="{ height: scrollHeight + 'px', transform: `translateY(${translateY}px)`}"
+      class="scroll-bar-y"
+      @mousedown="mousedown"
+    ></div>
+    <div ref="main" class="box" :class="{ 'has-scroll': scrollHeight }" @scroll="scroll">
+      <div ref="warpper" class="inner">
+        <p v-for="i in num" :key="i">454</p>
+        <p>777</p>
+      </div>
+    </div>
   </div>
  </div>
 </template>
 <script>
-import { defineComponent, nextTick, onMounted } from 'vue'
-
+import { defineComponent, onMounted, reactive, ref } from 'vue'
 export default defineComponent({
- setup() {
-  const getSelect = (targetNode) => {
-   if (window.getSelection) {
-    //chrome等主流浏览器
-    // console.log(document.getSelection);
-    var selection = window.getSelection()
-    var range = document.createRange()
-    range.selectNode(targetNode)
-    selection.removeAllRanges()
-    selection.addRange(range)
-    // console.log(window.getSelection)
-   } else if (document.body.createTextRange) {
-    //ie
-    var range = document.body.createTextRange()
-    range.moveToElementText(targetNode)
-    range.select()
-   }
-  }
-  // const clipboardHandler = (nodeName, event) => {
-  //  event = event || nodeName //不传参时
-  //  const type = Object.prototype.toString
-  //   .call(nodeName)
-  //   .replace(/\[object\s|\]/g, '')
-  //  const target = event.target || event.srcElement
+  setup() {
+    const barY = ref(null)
+    const warpper = ref(null)
+    const main = ref(null)
+    const outer = ref(null)
+    const scrollHeight = ref(0)
+    const translateY = ref(0)
+    const num = ref(0)
+    let boxHeight = 0
+    let allHeight = 0
+    let flag = true
+    Promise.resolve().then(() => {
+      setTimeout(() => {
+        num.value = 100
+      }, 3000)
+    })
+    onMounted(() => {
+      computedScrollStyle()
+      observer()
+    })
 
-  //  var result = false;
-  //  switch (type) {
-  //   case 'String':
-  //    result = target.nodeName.toLowerCase() === nodeName
-  //    break
-  //   case 'Array':
-  //    result = nodeName.some((item) => target.nodeName.toLowerCase() === item)
-  //    break
-  //   case 'Object':
-  //    nodeName = null;
-  //   default:
-  //    result = target.nodeName === 'IMG'
-  //  }
-  //  if (result) {
-  //    console.log(document.querySelectorAll('.hehe img')[0])
-  //   getSelect(target)
-  //   document.execCommand('copy')
-  //  }
-  // }
+    function computedScrollStyle() {
+      const { parentNode } = barY.value
+      allHeight = warpper.value.scrollHeight
+      boxHeight = parentNode.offsetHeight
+      if (allHeight > boxHeight) {
+        scrollHeight.value = boxHeight / allHeight * boxHeight
+      } else {
+        scrollHeight.value = 0
+      }
+    }
 
-  function hehe() {
-    const node = document.querySelector('.hehe img')
-    getSelect(node)
-    document.execCommand('copy')
-    setTimeout(() => {
-      node.blur()
-    }, 1000)
-  }
+    function observer() {
+      const targetNode = barY.value.parentNode
+      const config = { attributes: false, childList: true, subtree: true };
+      function callback(mutationsList, observer) {
+        computedScrollStyle()
+      }
+      const observer = new MutationObserver(callback);
+      observer.observe(targetNode, config); 
+    }
 
-  function blur() {
-    alert(55)
-  }
-  function focus() {
-    alert(566)
-  }
-  onMounted(() => {
-  //绑定事件
-  // var img = document.querySelectorAll('img')[0]
-  // img.addEventListener('click', clipboardHandler)
+    function scroll(ev) {
+      if (!flag) return
+      const { scrollTop } = ev.target
+      translateY.value = scrollTop / allHeight * boxHeight
+    }
 
-  // var pHandler = clipboardHandler.bind(null, 'p')
-  // var div = document.querySelectorAll('div')[0]
-  // div.addEventListener('click', pHandler)
-  })
-  return {
-    hehe,
-    blur,
-    focus
+    function mousedown(ev) {
+      flag = false
+      const {offsetY } = ev
+      const { top: elPageY } = outer.value.getBoundingClientRect()
+      const maxHeight = boxHeight - scrollHeight.value
+      function mousemove(event) {
+        const { pageY: mousePageY } = event
+        const { offsetTop } = ev.target
+        let newValue = mousePageY - elPageY - offsetY
+        if (newValue <= 0) newValue = 0
+        if (newValue >= maxHeight) newValue = maxHeight
+        translateY.value = newValue
+        main.value.scrollTop = newValue / maxHeight * (allHeight - boxHeight)
+      }
+      window.addEventListener('mouseup', () => {
+        flag = true
+        window.removeEventListener('mousemove', mousemove)
+      })
+      window.addEventListener('mousemove', mousemove)
+    }
+    return {
+      num,
+      outer,
+      barY,
+      main,
+      warpper,
+      scroll,
+      scrollHeight,
+      translateY,
+      mousedown
+    }
   }
- }
 })
+
 </script>
 
 
@@ -120,6 +129,32 @@ body {
 }
 img {
   user-select: none;
+}
+.a {
+  // width: 500px;
+  // height: 500px;
+  user-select: none;
+  overflow: hidden;
+  background: red;
+  position: relative;
+  .scroll-bar-y {
+    width: 10px;
+    border-radius: 5px;
+    background: blueviolet;
+    position: absolute;
+    right: 0;
+  }
+  .box {
+    height: 100%;
+    overflow: auto;
+    &.has-scroll {
+      margin-right: -17px;
+      // margin-bottom: -17px;
+    }
+  }
+  .inner {
+    height: 400px;
+  }
 }
 #app {
  font-family: Avenir, Helvetica, Arial, sans-serif;
