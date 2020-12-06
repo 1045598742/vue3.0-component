@@ -1,5 +1,5 @@
 <template>
- <piechart @click="handleClick" :data="state.data" :x="200" :y="200" :r="200"></piechart>
+ <Piechart @click="handleClick" :data="state.data" :x="200" :y="200" :r="200"></Piechart>
 </template>
 <script>
 import { reactive, ref } from "vue";

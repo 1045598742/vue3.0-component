@@ -25,7 +25,7 @@ export default {
   },
   props: ['str', 'a', 'b'],
   setup(props, context) {
-    console.log(context);
+    // console.log(context);
     function change() {
       // context.emit('update:str', props.str + 1)
       context.emit('update:a', 'aaaa')

@@ -7,6 +7,6 @@
 
 <script>
 export default {
-  // emits: ['onHehe', 'onHaha']
+  emits: ['onHehe', 'onHaha']
 }
 </script>

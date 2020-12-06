@@ -12,7 +12,7 @@
         @afterLeave="afterLeave"
       >
         <div v-if="isMounted" v-show="innerShow" class="model">
-          <slot></slot>
+          <slot />
         </div>
       </transition>
     </teleport>

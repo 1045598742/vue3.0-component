@@ -1,0 +1,125 @@
+.lb-carousel { // 组件根元素
+  width: 100%;
+  height: 100%;
+  position: relative;
+  user-select: none;
+  overflow: hidden;
+  transition: width .001s linear;
+  &.horizontal{
+    &:hover {
+      .left {
+        left: 10px;
+      }
+      .right {
+        right: 10px;
+      }
+    }
+    .left {
+      left: -50px;
+    }
+    .right {
+      right: -50px;
+    }
+    .left,.right{
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .lb-carousel__indicator {
+      bottom: 10px;
+      left: 50%;
+      flex-direction: row;
+      transform: translateX(-50%);
+    }
+  }
+  &.vertical{
+    &:hover {
+      .left {
+        top: 10px;
+      }
+      .right {
+        bottom: 10px;
+      }
+    }
+    .left {
+      top: -50px;
+    }
+    .right {
+      bottom: -50px;
+    }
+    .left,.right{
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .lb-carousel__indicator {
+      right: 10px;
+      top: 50%;
+      flex-direction: column;
+      transform: translateY(-50%);
+    }
+  }
+  &__arrow { // 箭头样式
+    position: absolute;
+    background-color: hsla(0,0%,100%,.4);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    z-index: 4;
+    cursor: pointer;
+    color: white;
+    transition: all .3s ease-in-out;
+    i {
+      position: relative;
+      color: #fff;
+      line-height: 50px;
+      font-size: 30px;
+    }
+  }
+  &__indicator { // 指示器
+    display: flex;
+    position: absolute;
+    z-index: 3;
+    li {
+      margin: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      &.active {
+        background: orange;
+      }
+    }
+  }
+  &__item {
+    position: absolute;
+    background-color: sandybrown;
+    height: 100%;
+    width: 100%;
+    transition: transform .4s ease-out;
+    &.card {
+      width: 50%;
+    }
+  }
+  @mixin transform($axis, $next, $prev) {
+    transform: translate#{$axis}($next);
+    &.prev {
+      transform: translate#{$axis}($prev);
+    }
+  }
+  &-enter-from {
+    &.horizontal {
+      @include transform($axis: X, $next: 100%, $prev: -100%);
+    }
+    &.vertical {
+      @include transform($axis: Y, $next: 100%, $prev: -100%);
+    }
+  }
+  &-leave-to {
+    &.horizontal {
+      @include transform($axis: X, $next: -100%, $prev: 100%);
+    }
+    &.vertical {
+      @include transform($axis: Y, $next: -100%, $prev: 100%);
+    }
+  }
+}

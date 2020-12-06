@@ -1,15 +1,41 @@
 <template>
-  <div ref="carousel" class="lb-carousel" :style="{ height: height }" @mouseenter="clearTimer" @mouseleave="autoPlayFn">
-    <div class="lb-carousel__arrow left" @click="arrowClick('prev')"></div>
-    <div class="lb-carousel__arrow right" @click="arrowClick('next')"></div>
+  <div
+    ref="carousel"
+    :style="{ height: height }"
+    :class="['lb-carousel', direction === 'vertical' ? 'vertical' : 'horizontal']"
+    @mouseenter="clearTimer"
+    @mouseleave="autoPlayFn"
+  >
+    <!-- 方向按钮（只有在横向的时候展示） -->
+    <!-- 左指示器 -->
+    <div v-show="direction === 'horizontal'" class="lb-carousel__arrow left" @click="arrowClick('prev')">
+      <slot name="left-arrow">
+        <i :class="direction === 'vertical' ? 'lb-icon-shangjiantou' : 'lb-icon-zuo'" />
+      </slot>
+    </div>
+    <!-- 右指示器 -->
+    <div v-show="direction === 'horizontal'" class="lb-carousel__arrow right" @click="arrowClick('next')">
+      <slot name="right-arrow">
+        <i :class="direction == 'vertical' ? 'lb-icon-xiajiantou' : 'lb-icon-you'" />
+      </slot>
+    </div>
+    <!-- 轮播item的插槽 -->
     <slot />
-    <ul class="lb-carousel__indicator">
-      <li v-for="i in childNum" :key="i" :class="{ active: activeIndex === i-1 }" @mouseenter="activeIndexChange(i - 1)"></li>
+    <!-- 指示器 -->
+    <ul
+      :class="['lb-carousel__indicator', direction === 'vertical' ? 'vertical' : 'horizontal']"
+    >
+      <li
+        v-for="i in childNum"
+        :key="i"
+        :class="{ active: activeIndex === i - 1 }"
+        @[triggerType]="activeIndexChange(i - 1)"
+      ></li>
     </ul>
   </div>
 </template>
 <script>
-import { defineComponent, ref, nextTick, watch, onUnmounted, onDeactivated } from 'vue'
+import { defineComponent, ref, nextTick, watch, onUnmounted, onDeactivated, computed } from 'vue'
 import { throttle, debounce } from '@/utils'
 
 export default defineComponent({
@@ -23,33 +49,47 @@ export default defineComponent({
       type: Boolean,
       default: true
     },
+    trigger: { // 指示器触发的方式
+      type: String,
+      default: 'hover' // hover || click
+    },
     interval: { // 轮播延时
       type: Number,
       default: 3000
     },
     direction: { // 轮播主轴
       type: String,
-      default: 'horizontal' // horizontal vertical
+      default: 'vertical' // horizontal || vertical
     },
     type: { // 轮播类型 3d模式还是默认单张
       type: String,
-      default: '' // '' card
+      default: '' // '' ||  card
+    },
+    scale: { // card模式下的两侧图片的缩放倍数
+      type: Number,
+      default: 0.8
     }
   },
   emits: ['change'],
   setup(props, context) {
+    let width = null
+    let activeX = null
+    let timer = null
+    const debounceEvent = debounce(resizeWidthComputed, 300)
     const childNum = ref(0)
     const activeIndex = ref(0)
     const operation = ref('next')
     const carousel = ref(null)
     const transformObj = ref(null)
-    const debounceEvent = debounce(resizeWidthComputed, 300)
-    let width = null
-    let activeX = null
-    let timer = null
+    const triggerType = computed(() => props.trigger === 'hover' ? 'mouseenter' : 'click')
 
     watch(() => props.autoPlay, autoPlayFn, { immediate: true })
     watch(() => props.interval, autoPlayFn)
+    watch(() => props.scale, () => { // 监听卡片模式下的倍数变化
+      if (props.type !== 'card' && props.direction !== 'horizontal') return
+      cardCom()
+    })
+
     watch(() => props.type,
       type => {
         nextTick(eventOperation)
@@ -65,10 +105,10 @@ export default defineComponent({
     })
 
     /**
-     * 事件操作
+     * @description 事件操作
      */
     function eventOperation() {
-      if (props.type === 'card') {
+      if (props.type === 'card' && props.direction === 'horizontal') {
         resizeWidthComputed()
         window.addEventListener('resize', debounceEvent)
       } else {
@@ -77,7 +117,7 @@ export default defineComponent({
     }
 
     /**
-     * 组件宽度变化重新计算卡片动画宽度
+     * @description 组件宽度变化重新计算卡片动画宽度
      */
     function resizeWidthComputed() {
       const { offsetWidth } = carousel.value
@@ -87,12 +127,12 @@ export default defineComponent({
     }
 
     /**
-     * 卡片模式的样式计算
+     * @description 卡片模式的样式计算
      */
     function cardCom() {
       const defaultChildrenLength = context.slots.default()[0].children.length
       const operationType = operation.value // 获取操作的类型（上一步还是下一步）
-      const scale = 0.8 // 缩放倍数
+      const { scale } = props // 缩放倍数
       for (let i = 0; i < defaultChildrenLength; i++) {
         const { value } = activeIndex
         const obj = {
@@ -107,13 +147,13 @@ export default defineComponent({
           const nextX = width * 2 - activeX * scale - activeX // 下一张轮播距离容器左侧的距离
           Object.assign(obj, {
             [prev]: {
-              style: `transform: translateX(${prevX}px) scale(${scale}); z-index: ${operationType === 'next' ? 2 : 1};`
+              style: `transform: translateX(${prevX}px) scale(${scale}); z-index: ${operationType === 'next' ? 2 : 1}`
             },
             [next]: {
-              style: `transform: translateX(${nextX}px) scale(${scale}); z-index: ${operationType === 'next' ? 1 : 2};`
+              style: `transform: translateX(${nextX}px) scale(${scale}); z-index: ${operationType === 'next' ? 1 : 2}`
             },
             other: {
-              style: `transform: translateX(${activeX}px) scale(${scale});`
+              style: `transform: translateX(${activeX}px) scale(${scale})`
             }
           }) 
         }
@@ -122,7 +162,7 @@ export default defineComponent({
     }
 
     /**
-     * 清理自动轮播定时器
+     * @description 清理自动轮播定时器
      */
     function clearTimer() {
       if (timer) {
@@ -132,7 +172,7 @@ export default defineComponent({
     }
 
     /**
-     * 自动轮播
+     * @description 自动轮播
      */
     function autoPlayFn() {
       clearTimer()
@@ -143,21 +183,21 @@ export default defineComponent({
     }
 
     /**
-     * 给组件使用者提供的切换下一张
+     * @description 给组件使用者提供的切换下一张
      */
     function next() {
       activeChange('next')
     }
 
     /**
-     * 给组件使用者提供的切换上一张
+     * @description 给组件使用者提供的切换上一张
      */
     function prev() {
       activeChange('prev')
     }
 
     /**
-     * 触发轮播图索引改变前的索引计算
+     * @description 触发轮播图索引改变前的索引计算
      * @param type prev上一步 next下一步
      */
     function activeChange(type) {
@@ -175,12 +215,12 @@ export default defineComponent({
     }
 
     /**
-     * 点击操作箭头（节流）
+     * @description 点击操作箭头（节流）
      */
-    const arrowClick = throttle(activeChange, 300)
+    const arrowClick = throttle(activeChange, 400)
 
     /**
-     * 改变索引进行轮播
+     * @description 改变索引进行轮播
      * @param index 变化的目标索引
      * @param auto 是否是定时器触发的轮播
      */
@@ -191,7 +231,7 @@ export default defineComponent({
         nextTick(() => {
           activeIndex.value = index
           context.emit('change', index)
-          if (props.type === 'card') cardCom()
+          if (props.type === 'card' && props.direction === 'horizontal') cardCom()
         })
       }
     }
@@ -202,6 +242,7 @@ export default defineComponent({
       activeIndex,
       childNum,
       arrowClick,
+      triggerType,
       operation,
       clearTimer,
       autoPlayFn,
@@ -210,50 +251,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="scss">
-  .lb-carousel { // 组件根元素
-    width: 100%;
-    height: 100%;
-    position: relative;
-    user-select: none;
-    overflow: hidden;
-    transition: width .001s linear;
-    &__arrow { // 箭头样式
-      position: absolute;
-      top: 50%;
-      background-color: red;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      transform: translateY(-50%);
-      z-index: 4;
-      cursor: pointer;
-      &.left { // 左箭头
-        left: 5px;
-      }
-      &.right { // 右箭头
-        right: 5px;
-      }
-    }
-    &__indicator { // 指示器
-      display: flex;
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 3;
-      li {
-        margin: 0 5px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: sandybrown;
-        cursor: pointer;
-        &.active {
-          background-color: white;
-        }
-      }
-    }
-  }
-</style>

@@ -1,9 +1,7 @@
 <template>
   <div class="home">
-    <div ref="box">{{ name}}</div>
+    <div ref="box">{{ name }}</div>
     <button @click="stateChange">点击改变store</button>
-    <div>{{ obj }}</div>
-    <HelloWorld v-model:a="obj.name" v-model:b="obj.age" @hehe="hehe" @haha="haha" />
   </div>
 </template>
 
@@ -20,35 +18,44 @@ import { useRouter, useRoute, useLink, RouterLink, onBeforeRouteLeave, onBeforeR
 export default {
   name: 'Home',
   components: {
-    HelloWorld: defineAsyncComponent(
-      {
-        loader: async () => {
-          const fn = function() {
-            return new Promise((resolve, reject) => {
-              setTimeout(resolve, 0)
-            })
-          }
-          await fn()
-          return import('../components/HelloWorld')
-        },
-        loadingComponent: {
-          render() {
-            return h('h1', { style: { color: 'blue' } }, '加载中')
-          }
-        },
-        errorComponent: {
-          render() {
-            return h('h1', { style: { color: 'red' } }, '加载失败')
-          }
-        },
-        delay: 200,
-        timeout: 2100,
-      }
-    )
+    // HelloWorld: defineAsyncComponent(
+    //   {
+    //     loader: async () => {
+    //       const fn = function() {
+    //         return new Promise((resolve, reject) => {
+    //           setTimeout(resolve, 0)
+    //         })
+    //       }
+    //       await fn()
+    //       return import('../components/HelloWorld')
+    //     },
+    //     loadingComponent: {
+    //       render() {
+    //         return h('h1', { style: { color: 'blue' } }, '加载中')
+    //       }
+    //     },
+    //     errorComponent: {
+    //       render() {
+    //         return h('h1', { style: { color: 'red' } }, '加载失败')
+    //       }
+    //     },
+    //     delay: 200,
+    //     timeout: 2100,
+    //   }
+    // )
+  },
+  data() {
+    return {
+      a: 333
+    }
   },
   setup(prop, context) {
     const { navigate } = useLink({ ...RouterLink.props, to: '/about' })
     const instance = getCurrentInstance()
+    onMounted(() => {
+      console.log(1000);
+    })
+    // instance.proxy.obj.name = 'bbb'
     let obj = { name: 'a', age: 20 }
     const state = toRefs(reactive(obj))
     function stateChange() {
