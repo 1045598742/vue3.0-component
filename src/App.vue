@@ -2,6 +2,7 @@
  <div id="nav">
   <router-link to="/">Home</router-link> |
   <router-link to="/about">About</router-link> |
+  <router-link to="/input">Input</router-link> |
   <router-link to="/carousel">carousel</router-link>
   <!-- <router-view v-slot="{ Component }">
       <keep-alive>

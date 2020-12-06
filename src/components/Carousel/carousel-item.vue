@@ -5,8 +5,8 @@
       :class="[
         'lb-carousel__item',
         $parent.direction,
-        { prev: $parent.operation === 'prev'},
-        { card: $parent.type === 'card' && $parent.direction === 'horizontal'}
+        { card: $parent.type === 'card' && $parent.direction === 'horizontal'},
+        { prev: $parent.operation === 'prev'}
       ]"
       v-bind="attrs"
     >

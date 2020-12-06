@@ -13,6 +13,11 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
   },
   {
+    path: '/input',
+    name: 'input',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Input.vue')
+  },
+  {
     path: '/carousel',
     name: 'carousel',
     component: () => import('../views/carousel-demo.vue')
