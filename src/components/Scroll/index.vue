@@ -1,103 +1,127 @@
 <template>
   <div ref="outer" class="a">
     <div
-      ref="barY"
-      v-show="scrollHeight > 0"
-      :style="{ height: scrollHeight + 'px', transform: `translateY(${translateY}px)`}"
+      ref="verticalBar"
+      v-show="verticalBarLength > 0"
+      :style="{ height: `${verticalBarLength - (horizontalBarLength ? 10 : 0)}px`, transform: `translateY(${translateY}px)`}"
       class="scroll-bar-y"
-      @mousedown="mousedown"
+      @mousedown="mousedown($event, 'vertical')"
     ></div>
-    <div ref="main" class="box" :class="{ 'has-scroll': scrollHeight }" @scroll="scroll">
-      <div ref="warpper" class="inner">
-        <p v-for="i in num" :key="i">454</p>
-        <p>777</p>
+    <div
+      ref="horizontalBar"
+      v-show="horizontalBarLength > 0"
+      :style="{ width: `${horizontalBarLength - (verticalBarLength ? 10 : 0)}px`, transform: `translateX(${translateX}px)`}"
+      class="scroll-bar-x"
+      @mousedown="mousedown($event, 'horizontal')"
+    ></div>
+    <div ref="main" class="box" @scroll="scroll">
+      <div ref="warpper">
+        <slot/>
       </div>
     </div>
   </div>
 </template>
 <script>
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { defineComponent, nextTick, onMounted, onUpdated, reactive, ref, watch } from 'vue'
 export default defineComponent({
-  setup() {
-    const barY = ref(null)
+  setup(prop, { slots }) {
+    const verticalBar = ref(null) // 纵向滚动条元素
+    const horizontalBar = ref(null) // 横向滚动条元素
     const warpper = ref(null)
     const main = ref(null)
     const outer = ref(null)
-    const scrollHeight = ref(0)
+    const verticalBarLength = ref(0)
+    const horizontalBarLength = ref(0)
     const translateY = ref(0)
-    const num = ref(0)
+    const translateX = ref(0)
     let boxHeight = 0
+    let boxWidth = 0
     let allHeight = 0
+    let allWidth = 0
     let flag = true
-    Promise.resolve().then(() => {
-      setTimeout(() => {
-        num.value = 100
-      }, 3000)
-    })
+
     onMounted(() => {
-      computedScrollStyle()
-      observer()
+      watch(() => slots.default(), () => {
+        nextTick(() => {
+          computedScrollStyle()
+          scroll()
+        })
+      })
     })
+
+
 
     function computedScrollStyle() {
-      const { parentNode } = barY.value
       allHeight = warpper.value.scrollHeight
-      boxHeight = parentNode.offsetHeight
-      if (allHeight > boxHeight) {
-        scrollHeight.value = boxHeight / allHeight * boxHeight
-      } else {
-        scrollHeight.value = 0
-      }
+      allWidth = warpper.value.scrollWidth
+      boxHeight = outer.value.offsetHeight
+      boxWidth = outer.value.offsetWidth
+      verticalBarLength.value = allHeight > boxHeight ? boxHeight / allHeight * boxHeight : 0
+      horizontalBarLength.value = allWidth > boxWidth ? boxWidth / allWidth * boxWidth : 0
     }
 
-    function observer() {
-      computedScrollStyle()
-      const targetNode = barY.value.parentNode
-      const config = { attributes: false, childList: true, subtree: true }
-      function callback(mutationsList, observer) {
-        computedScrollStyle()
-      }
-      const resizeObserver = new ResizeObserver(callback)
-      resizeObserver.observe(targetNode)
-      const mutationObserver = new MutationObserver(callback)
-      mutationObserver.observe(targetNode, config)
-    }
+    // function observer() {
+    //   computedScrollStyle()
+    //   const targetNode = barY.value.parentNode
+    //   const config = { attributes: false, childList: true, subtree: true }
+    //   function callback(mutationsList, observer) {
+    //     console.log(888)
+    //     computedScrollStyle()
+    //   }
+    //   const resizeObserver = new ResizeObserver(callback)
+    //   resizeObserver.observe(targetNode)
+    //   const mutationObserver = new MutationObserver(callback)
+    //   mutationObserver.observe(targetNode, config)
+    // }
 
-    function scroll(ev) {
+    function scroll() {
       if (!flag) return
-      const { scrollTop } = ev.target
+      const { scrollTop, scrollLeft } = main.value
       translateY.value = scrollTop / allHeight * boxHeight
+      translateX.value = scrollLeft / allWidth * boxWidth
     }
 
-    function mousedown(ev) {
+    function mousedown(ev, type) {
       flag = false
-      const {offsetY } = ev
-      const { top: elPageY } = outer.value.getBoundingClientRect()
-      const maxHeight = boxHeight - scrollHeight.value
+      const {offsetY, offsetX } = ev
+      const { offsetTop, offsetLeft } = ev.target
+      const { top: elPageY, left: elPageX } = outer.value.getBoundingClientRect()
+      const maxHeight = boxHeight - verticalBarLength.value
+      const maxWidth = boxWidth - horizontalBarLength.value
       function mousemove(event) {
-        const { pageY: mousePageY } = event
-        const { offsetTop } = ev.target
-        let newValue = mousePageY - elPageY - offsetY
-        if (newValue <= 0) newValue = 0
-        if (newValue >= maxHeight) newValue = maxHeight
-        translateY.value = newValue
-        main.value.scrollTop = newValue / maxHeight * (allHeight - boxHeight)
+        const { pageY: mousePageY, pageX: mousePageX } = event
+        if (type === 'vertical') {
+          let newValue = mousePageY - elPageY - offsetY
+          if (newValue <= 0) newValue = 0
+          if (newValue >= maxHeight) newValue = maxHeight
+          translateY.value = newValue
+          main.value.scrollTop = newValue / maxHeight * (allHeight - boxHeight)
+        } else {
+          let newValue = mousePageX - elPageX - offsetX
+          if (newValue <= 0) newValue = 0
+          if (newValue >= maxWidth) newValue = maxWidth
+          translateX.value = newValue
+          main.value.scrollLeft = newValue / maxWidth * (allWidth - boxWidth)
+        }
       }
-      window.addEventListener('mouseup', () => {
+      const mouseUpEvent = () => {
         flag = true
         window.removeEventListener('mousemove', mousemove)
-      })
+        window.removeEventListener('mouseup', mouseUpEvent)
+      }
+      window.addEventListener('mouseup', mouseUpEvent)
       window.addEventListener('mousemove', mousemove)
     }
     return {
-      num,
       outer,
-      barY,
+      verticalBar,
       main,
       warpper,
       scroll,
-      scrollHeight,
+      verticalBarLength,
       translateY,
+      horizontalBarLength,
+      translateX,
       mousedown
     }
   }

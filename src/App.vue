@@ -3,6 +3,7 @@
   <router-link to="/">Home</router-link> |
   <router-link to="/about">About</router-link> |
   <router-link to="/input">Input</router-link> |
+  <router-link to="/scroll">Scroll</router-link> |
   <router-link to="/carousel">carousel</router-link>
   <!-- <router-view v-slot="{ Component }">
       <keep-alive>
@@ -29,8 +30,6 @@ img {
   user-select: none;
 }
 .a {
-  // width: 500px;
-  // height: 500px;
   user-select: none;
   overflow: hidden;
   background: red;
@@ -42,23 +41,25 @@ img {
     position: absolute;
     right: 0;
   }
-  .box {
-    height: 100%;
-    overflow: auto;
-    &.has-scroll {
-      margin-right: -17px;
-      // margin-bottom: -17px;
-    }
+  .scroll-bar-x {
+    height: 10px;
+    border-radius: 5px;
+    background: blueviolet;
+    position: absolute;
+    bottom: 0;
   }
-  .inner {
-    height: 400px;
+  .box {
+    // height: 100%;
+    overflow: scroll;
+    margin-right: -17px;
+    margin-bottom: -17px;
+    max-height: 400px;
   }
 }
 #app {
  font-family: Avenir, Helvetica, Arial, sans-serif;
  -webkit-font-smoothing: antialiased;
  -moz-osx-font-smoothing: grayscale;
- text-align: center;
  color: #2c3e50;
 }
 

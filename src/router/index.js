@@ -10,12 +10,17 @@ const routes = [
   {
     path: '/about',
     name: 'About',
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    component: () => import('@/views/About.vue')
   },
   {
     path: '/input',
     name: 'input',
-    component: () => import(/* webpackChunkName: "about" */ '../views/Input.vue')
+    component: () => import('@/views/Input.vue')
+  },
+  {
+    path: '/scroll',
+    name: 'scroll',
+    component: () => import('@/views/Scroll.vue')
   },
   {
     path: '/carousel',
