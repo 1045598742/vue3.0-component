@@ -25,7 +25,12 @@ const routes = [
   {
     path: '/carousel',
     name: 'carousel',
-    component: () => import('../views/carousel-demo.vue')
+    component: () => import('@/views/carousel-demo.vue')
+  },
+  {
+    path: '/picker',
+    name: 'picker',
+    component: () => import('@/views/picker.vue')
   }
 ]
 

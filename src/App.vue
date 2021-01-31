@@ -4,6 +4,7 @@
   <router-link to="/about">About</router-link> |
   <router-link to="/input">Input</router-link> |
   <router-link to="/scroll">Scroll</router-link> |
+  <router-link to="/picker">picker</router-link> |
   <router-link to="/carousel">carousel</router-link>
   <!-- <router-view v-slot="{ Component }">
       <keep-alive>

@@ -22,11 +22,9 @@
   </div>
 </template>
 <script>
-import { defineComponent, nextTick, onMounted, onUpdated, reactive, ref, watch } from 'vue'
+import { defineComponent, nextTick, onMounted, ref, watch } from 'vue'
 export default defineComponent({
   setup(prop, { slots }) {
-    const verticalBar = ref(null) // 纵向滚动条元素
-    const horizontalBar = ref(null) // 横向滚动条元素
     const warpper = ref(null)
     const main = ref(null)
     const outer = ref(null)
@@ -60,20 +58,6 @@ export default defineComponent({
       horizontalBarLength.value = allWidth > boxWidth ? boxWidth / allWidth * boxWidth : 0
     }
 
-    // function observer() {
-    //   computedScrollStyle()
-    //   const targetNode = barY.value.parentNode
-    //   const config = { attributes: false, childList: true, subtree: true }
-    //   function callback(mutationsList, observer) {
-    //     console.log(888)
-    //     computedScrollStyle()
-    //   }
-    //   const resizeObserver = new ResizeObserver(callback)
-    //   resizeObserver.observe(targetNode)
-    //   const mutationObserver = new MutationObserver(callback)
-    //   mutationObserver.observe(targetNode, config)
-    // }
-
     function scroll() {
       if (!flag) return
       const { scrollTop, scrollLeft } = main.value
@@ -84,7 +68,6 @@ export default defineComponent({
     function mousedown(ev, type) {
       flag = false
       const {offsetY, offsetX } = ev
-      const { offsetTop, offsetLeft } = ev.target
       const { top: elPageY, left: elPageX } = outer.value.getBoundingClientRect()
       const maxHeight = boxHeight - verticalBarLength.value
       const maxWidth = boxWidth - horizontalBarLength.value
@@ -114,7 +97,6 @@ export default defineComponent({
     }
     return {
       outer,
-      verticalBar,
       main,
       warpper,
       scroll,

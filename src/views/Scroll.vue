@@ -1,16 +1,16 @@
 <template>
-  <Scroll>
+  <ScrollCom>
     <div>
       <p v-for="i in num" :key="i" style="width: 100%">{{ i }}</p>
     </div>
-  </Scroll>
+  </ScrollCom>
 </template>
 <script>
 import { ref, defineComponent } from 'vue'
-import Scroll from '../components/Scroll'
+import ScrollCom from '@/components/Scroll'
 export default defineComponent({
   components: {
-    Scroll
+    ScrollCom
   },
   setup(prop, context) {
     const num = ref(0)
